@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Reemu, With Love ❤️</title>
+    
+    <!-- Premium Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-pink: #f472b6;
+            --deep-pink: #ec4899;
+            --diary-paper: #fffefb;
+            --gold: #d4af37;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            background: #fdf2f8; 
+            color: #1f2937;
+            touch-action: manipulation;
+        }
+
+        /* Typography Mapping */
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: -0.02em; }
+        .handwritten { font-family: 'Dancing Script', cursive; color: #be185d; }
+        .luxury-label { font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+
+        /* --- Luxe Neon Timer --- */
+        #lock-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, rgba(251, 207, 232, 0.5) 0%, rgba(253, 242, 248, 1) 100%);
+            backdrop-filter: blur(50px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-unit {
+            background: white;
+            width: 80px;
+            height: 95px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .timer-val { font-size: 2rem; font-weight: 200; color: var(--deep-pink); text-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
+        .timer-label { font-size: 0.6rem; color: #9d174d; font-weight: 700; margin-top: 5px; opacity: 0.6; }
+
+        /* --- Centered Diary Stack --- */
+        .diary-stack {
+            position: relative;
+            width: 290px;
+            height: 400px;
+            margin: 0 auto;
+            perspective: 1500px;
+        }
+
+        @media (min-width: 768px) { .diary-stack { width: 360px; height: 480px; } }
+
+        .diary-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--diary-paper);
+            border-radius: 25px;
+            padding: 35px 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.02);
+            transform-origin: center bottom;
+        }
+
+        .card-cover {
+            background: linear-gradient(145deg, #be185d, #ec4899);
+            color: white;
+            z-index: 50;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* --- UI Elements --- */
+        #app { opacity: 0; }
+        .step {
+            position: absolute; width: 94%; max-width: 650px; padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(30px);
+            border-radius: 50px; text-align: center; opacity: 0;
+            transform: translateY(30px) scale(0.98); pointer-events: none;
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        .step.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+
+        .btn-luxury {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            color: white; padding: 1.1rem 2.5rem; border-radius: 100px;
+            font-weight: 600; font-size: 0.9rem; letter-spacing: 0.05em;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+            transition: 0.4s;
+        }
+        .btn-luxury:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 35px rgba(236, 72, 153, 0.4); }
+
+        .spec-card {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 20px; border-radius: 25px; text-align: left;
+            border: 1px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+
+<body>
+
+    <audio id="romantic-music" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-love.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Luxe Timer Overlay -->
+    <div id="lock-screen">
+        <div class="text-center">
+            <h3 class="luxury-label text-pink-400 mb-8 text-[11px]">The Story Begins In</h3>
+            <div class="flex gap-4 sm:gap-6 justify-center">
+                <div class="timer-unit"><span class="timer-val" id="days">00</span><span class="timer-label">Days</span></div>
+                <div class="timer-unit"><span class="timer-val" id="hours">00</span><span class="timer-label">Hours</span></div>
+                <div class="timer-unit"><span class="timer-val" id="minutes">00</span><span class="timer-label">Mins</span></div>
+                <div class="timer-unit"><span class="timer-val" id="seconds">00</span><span class="timer-label">Secs</span></div>
+            </div>
+            <p class="mt-12 italic text-pink-900/30 text-xl font-serif">"Every beautiful thing has its perfect timing."</p>
+        </div>
+    </div>
+
+    <div id="app">
+        <div id="canvas-container" class="fixed inset-0 z-1"></div>
+        
+        <div id="content" class="relative z-10 h-screen w-full flex items-center justify-center p-4">
+            
+            <!-- Step 1: Entrance -->
+            <div class="step active" id="step1">
+                <span class="luxury-label text-[10px] text-pink-400">Welcome, Reemu</span>
+                <h2 class="text-5xl mt-3 mb-6">A Letter From The Heart</h2>
+                <p class="text-gray-500 font-light leading-relaxed mb-8 text-lg">I've built this space as a sanctuary for all the thoughts I have about you. Shall we begin our journey?</p>
+                <button class="btn-luxury" onclick="startApp()">Enter My Heart</button>
+            </div>
+
+            <!-- Step 2: Birthday Message -->
+            <div class="step" id="step2">
+                <h2 class="text-4xl text-pink-800 mb-6 italic">Happy Birthday, Bachawww!</h2>
+                <p class="text-gray-600 font-light leading-relaxed text-lg">Today, the universe is celebrating the day its favorite star was born. You bring so much light and joy into my life, and I hope this day is as radiant as your spirit.</p>
+                <button class="btn-luxury mt-4" onclick="nav(3)">What makes you special?</button>
+            </div>
+
+            <!-- Step 3: Expanded Qualities -->
+            <div class="step" id="step3">
+                <h2 class="text-3xl text-pink-800 mb-6">The Essence of You</h2>
+                <div class="grid grid-cols-2 gap-4 text-left">
+                    <div class="spec-card">
+                        <span class="text-2xl">🧠</span>
+                        <h4 class="font-bold text-pink-600 text-sm mt-2">Brilliant Mind</h4>
+                        <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">The way you process the world with such wisdom is truly a gift to witness.</p>
+                    </div>
+                    <div class="spec-card">
+                        <span class="text-2xl">🧿</span>
+                        <h4 class="font-bold text-pink-600 text-sm mt-2">Pure Aura</h4>
+                        <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">Your energy is a safe haven. Just being near you makes everything feel peaceful.</p>
+                    </div>
+                    <div class="spec-card">
+                        <span class="text-2xl">💎</span>
+                        <h4 class="font-bold text-pink-600 text-sm mt-2">True Character</h4>
+                        <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">Your integrity and strength are rare gems in a world that is often chaotic.</p>
+                    </div>
+                    <div class="spec-card">
+                        <span class="text-2xl">🌹</span>
+                        <h4 class="font-bold text-pink-600 text-sm mt-2">Kind Soul</h4>
+                        <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">You care for souls in a way that is invisible to the eyes but felt by the heart.</p>
+                    </div>
+                </div>
+                <button class="btn-luxury mt-6" onclick="nav(4)">A Special Capture</button>
+            </div>
+
+            <!-- Step 4: Polaroid -->
+            <div class="step" id="step4">
+                <div class="bg-white p-3 pb-16 shadow-2xl rotate-[-2deg] inline-block mb-4 transition-transform hover:rotate-0 duration-700">
+                    <img src="crush.webp" alt="Beautiful" class="w-64 md:w-72 h-64 md:h-72 object-cover">
+                    <p class="handwritten text-4xl mt-6">Love Theseee...</p>
+                </div>
+                <p class="text-gray-400 font-light italic mt-2">"Some eyes are never meant to be forget."</p>
+                <button class="btn-luxury block mx-auto mt-6" onclick="nav(5)">Open My Diary</button>
+            </div>
+
+            <!-- Step 5: Master Centered Diary -->
+            <div class="step" id="step5">
+                <h3 class="text-pink-800 mb-8 text-2xl italic">Private Reflections</h3>
+                <div class="diary-stack">
+                    <!-- Base Page (Fixed) -->
+                    <div class="diary-card">
+                        <h4 class="font-bold text-pink-600 mb-4 text-lg">Always Yours</h4>
+                        <p class="text-[13px] text-gray-600 leading-relaxed">No matter where our separate roads lead, or how many years pass by, I want you to know you have a dedicated supporter in me. I will always celebrate your wins, no matter how small they may seem.</p>
+                        <p class="handwritten text-3xl mt-auto text-right">— Forever Yours</p>
+                    </div>
+                    <!-- Page 5 -->
+                    <div class="diary-card" id="dp5">
+                        <h4 class="font-bold text-pink-600 mb-4 text-lg">The Promise</h4>
+                        <p class="text-[13px] text-gray-600 leading-relaxed">I promise to be the person who reminds you of your worth on the days you forget it yourself. You are a masterpiece of grace and character, and I am so lucky to walk this earth at the same time as you.</p>
+                        <button class="text-pink-400 text-[11px] font-bold mt-auto tracking-[3px]" onclick="flipPage(5)">FLIP PAGE</button>
+                    </div>
+                    <!-- Page 4 -->
+                    <div class="diary-card" id="dp4">
+                        <h4 class="font-bold text-pink-600 mb-4 text-lg">My Birthday Prayer</h4>
+                        <p class="text-[13px] text-gray-600 leading-relaxed">I pray that Allah fills your new year with barakah, health, and endless laughter. May every dream you've ever whispered to the stars find its way back to you. You deserve the kind of happiness that makes your soul dance.</p>
+                        <button class="text-pink-400 text-[11px] font-bold mt-auto tracking-[3px]" onclick="flipPage(4)">FLIP PAGE</button>
+                    </div>
+                    <!-- Page 3 -->
+                    <div class="diary-card" id="dp3">
+                        <h4 class="font-bold text-pink-600 mb-4 text-lg">Your Impact</h4>
+                        <p class="text-[13px] text-gray-600 leading-relaxed">The way you handle challenges with so much elegance is inspiring. You don't just exist; you make the world better for everyone lucky enough to know you. Keep that sparkle in your eyes forever, Reemu.</p>
+                        <button class="text-pink-400 text-[11px] font-bold mt-auto tracking-[3px]" onclick="flipPage(3)">FLIP PAGE</button>
+                    </div>
+                    <!-- Page 2 -->
+                    <div class="diary-card" id="dp2">
+                        <h4 class="font-bold text-pink-600 mb-4 text-lg">The First Impression</h4>
+                        <p class="text-[13px] text-gray-600 leading-relaxed">I remember the first time I truly noticed you. It wasn't just your beauty, but the kindness you radiated without even trying. I knew right then that you were someone incredibly rare—a soul I never wanted to lose.</p>
+                        <button class="text-pink-400 text-[11px] font-bold mt-auto tracking-[3px]" onclick="flipPage(2)">FLIP PAGE</button>
+                    </div>
+                    <!-- Cover Card -->
+                    <div class="diary-card card-cover" id="dp1">
+                        <h3 class="handwritten text-white text-5xl">For Reemu</h3>
+                        <p class="luxury-label text-[9px] mt-6 text-white opacity-60">A Private Letter</p>
+                        <button class="bg-white/20 border border-white/40 px-8 py-3 rounded-full text-[10px] font-bold mt-12 hover:bg-white hover:text-pink-600 transition-all" onclick="flipPage(1)">TAP TO OPEN</button>
+                    </div>
+                </div>
+                <button class="btn-luxury mt-10" onclick="nav(6)">Final Wish</button>
+            </div>
+
+            <!-- Step 6: Finale -->
+            <div class="step" id="step6">
+                <h2 class="text-4xl italic text-pink-800 mb-4">A Year of Magic</h2>
+                <p class="text-gray-500 font-light mb-10 text-lg">May your smile never fade, your heart never ache, and your path always be clear. Happy Birthday once again, Reemuuuu! ❤️</p>
+                <button class="btn-luxury" id="confetti-btn">Celebrate Now!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const song = document.getElementById('romantic-music');
+        let currentStep = 1;
+
+        // "Automatic" playback triggered on first interaction
+        function startApp() { 
+            song.play().catch(e => console.log("Audio waiting for user.")); 
+            nav(2); 
+        }
+
+        function nav(n) {
+            currentStep = n;
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${n}`).classList.add('active');
+        }
+
+        function flipPage(id) {
+            const page = document.getElementById(`dp${id}`);
+            // Luxe slide and fade transition
+            gsap.to(page, {
+                y: -150,
+                rotateX: 45,
+                opacity: 0,
+                duration: 1,
+                ease: "power2.inOut",
+                onComplete: () => page.style.display = 'none'
+            });
+        }
+
+        /* --- Timer Logic (July 20, 2026) --- */
+        const target = new Date("July 20, 2026 00:00:00").getTime();
+        const countdown = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = target - now;
+            if (diff <= 0) {
+                clearInterval(countdown);
+                gsap.to("#lock-screen", { y: "-100%", duration: 2, ease: "expo.inOut", onComplete: () => {
+                    document.getElementById("lock-screen").remove();
+                    document.getElementById("app").style.opacity = 1;
+                }});
+                return;
+            }
+            document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+        }, 1000);
+
+        /* --- 3D Background Atmosphere --- */
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        camera.position.z = 30;
+
+        const heartShape = new THREE.Shape();
+        heartShape.moveTo(0,0); heartShape.bezierCurveTo(0,0,0.5,0.5,2,0.5); heartShape.bezierCurveTo(4,0.5,4,3,4,3);
+        heartShape.bezierCurveTo(4,5,2,7,0,9); heartShape.bezierCurveTo(-2,7,-4,5,-4,3);
+        heartShape.bezierCurveTo(-4,3,-4,0.5,-2,0.5); heartShape.bezierCurveTo(-0.5,0.5,0,0,0,0);
+
+        const geo = new THREE.ExtrudeGeometry(heartShape, { depth: 1, bevelEnabled: true, bevelSize: 0.5 });
+        const hearts = [];
+        for(let i=0; i<15; i++) {
+            const mat = new THREE.MeshPhongMaterial({ color: i % 2 == 0 ? 0xf472b6 : 0xec4899, transparent: true, opacity: 0.35 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*85, (Math.random()-0.5)*40);
+            mesh.rotation.x = Math.PI; mesh.scale.set(0.3, 0.3, 0.3);
+            scene.add(mesh); hearts.push(mesh);
+        }
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        const light = new THREE.DirectionalLight(0xffffff, 1); light.position.set(1, 1, 1); scene.add(light);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            hearts.forEach(h => { h.rotation.y += 0.005; h.position.y += Math.sin(Date.now()*0.001+h.position.x)*0.01; });
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        document.getElementById('confetti-btn').onclick = () => {
+            confetti({ particleCount: 400, spread: 110, origin: { y: 0.75 }, colors: ['#ec4899', '#f472b6', '#ffffff'] });
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
